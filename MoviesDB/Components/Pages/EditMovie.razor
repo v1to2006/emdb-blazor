@@ -1,0 +1,113 @@
+﻿@page "/editmovie"
+@using Models
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit Movie</PageTitle>
+
+<h3>Edit Movie</h3>
+
+<EditForm Model="@_movie" FormName="editMovie" OnSubmit="HandleSubmit">
+    <form>
+        <div class="mb-3">
+            <label for="nimi" class="form-label">Nimi</label>
+            <InputText id="nimi" @bind-Value="_movie.Nimi" class="form-control" />
+            <div class="form-text">Movie title</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="ohjaaja" class="form-label">Ohjaaja</label>
+            <InputText id="ohjaaja" @bind-Value="_movie.Ohjaaja" class="form-control" />
+            <div class="form-text">Movie director</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="julkaistu" class="form-label">Julkaistu (1888 jälkeen)</label>
+            <InputNumber id="julkaistu" @bind-Value="_movie.Julkaistu" class="form-control" />
+            <div class="form-text">Release year</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="length" class="form-label">Pituus</label>
+            <InputNumber id="pituus" @bind-Value="_movie.Pituus" class="form-control" />
+            <div class="form-text">Movie Lenght in minutes</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="rating" class="form-label">Arvio</label>
+            <InputNumber id="arvio" @bind-Value="_movie.Arvio" class="form-control" />
+            <div class="form-text">Review IMDb</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="genre" class="form-label">Genre</label>
+            <InputText id="genre" @bind-Value="_movie.Genre" class="form-control" />
+            <div class="form-text">Movie's genre</div>
+        </div>
+        <div class="mb-3">
+            <label for="päänäyttelijät" class="form-label">Päänäyttelijät</label>
+            <InputText id="päänäyttelijät" @bind-Value="_movie.Päänäyttelijät" class="form-control" />
+            <div class="form-text">Main actors</div>
+        </div>
+        <div class="mb-3">
+            <label for="image" class="form-label">Linkki kuvaan</label>
+            <InputText id="image" @bind-Value="_movie.Image" class="form-control" />
+            <div class="form-text">Enter image's link. *Not required</div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</EditForm>
+
+@code {
+    [SupplyParameterFromForm]
+    private Movie _movie { get; set; } = new(string.Empty);
+    private bool IncorrectInput { get; set; }
+    private bool IncorrectArvio { get; set; }
+    private Database _database = new Database();
+
+    [SupplyParameterFromQuery]
+    private int ?id { get; set; }
+
+    private void HandleSubmit()
+    {
+        if (id != null)
+        {   
+            _movie.IdElokuvat = (int)id;
+
+            if (_movie.Nimi != string.Empty && _movie.Ohjaaja != string.Empty && _movie.Julkaistu >= 1888 && _movie.Pituus > 0 && _movie.Genre != string.Empty && _movie.Päänäyttelijät != string.Empty && _database.CheckMovies(_movie) == false)
+            {
+                if (0 <= _movie.Arvio && _movie.Arvio <= 10)
+                {
+                    _database.EditMovie(_movie);
+                    NavigationManager.NavigateTo("/movies");
+                }
+                else
+                {
+                    IncorrectArvio = true;
+                }
+            }
+            else
+            {
+                IncorrectInput = true;
+            }
+        }
+
+    }
+}
+
+@if (IncorrectInput)
+{
+    <br />
+    <div class="alert alert-danger fade-in" role="alert">
+        Fill in the fields correctly.
+    </div>
+
+}
+@if (IncorrectArvio)
+{
+    <br />
+    <div class="alert alert-danger fade-in" role="alert">
+        Please give rating between 0  - 10.
+    </div>
+
+}

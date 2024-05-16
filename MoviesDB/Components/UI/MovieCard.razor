@@ -1,0 +1,61 @@
+﻿@using Models
+
+@if (movie is not null)
+{
+    <div class="movie-item">
+        @if (!string.IsNullOrEmpty(movie.Image))
+        {
+            <img src="@movie.Image" alt="">
+        }
+        else
+        {
+            <img src="https://lightwidget.com/wp-content/uploads/localhost-file-not-found.jpg" alt="">
+        }
+        <div class="movie-item-content">
+            <div class="movie-item-title">
+                @movie.Nimi
+            </div>
+            <div class="movie-infos">
+                <div class="movie-info">
+                    <i class="bx bxs-star"></i>
+                    <span>@movie.Arvio</span>
+                </div>
+                <div class="movie-info">
+                    <i class="bx bxs-time"></i>
+                    <span>@movie.Pituus mins</span>
+                </div>
+                <div class="movie-info">
+                    <span>@movie.Julkaistu</span>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="movie-item">
+        <img src="https://lightwidget.com/wp-content/uploads/localhost-file-not-found.jpg" alt="">
+        <div class="movie-item-content">
+            <div class="movie-item-title">
+            </div>
+            <div class="movie-infos">
+                <div class="movie-info">
+                    <i class="bx bxs-star"></i>
+                    <span></span>
+                </div>
+                <div class="movie-info">
+                    <i class="bx bxs-time"></i>
+                    <span></span>
+                </div>
+                <div class="movie-info">
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Movie? movie { get; set; }
+}

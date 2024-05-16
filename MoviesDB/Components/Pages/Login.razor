@@ -1,0 +1,72 @@
+﻿@page "/login"
+@using Models
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
+
+<PageTitle>Login</PageTitle>
+
+<h3>Login</h3>
+
+<EditForm Model="@_user" FormName="loginuser" OnSubmit="HandleSubmit">
+    <form>
+        <div class="mb-3">
+            <label for="name" class="form-label">Name</label>
+            <InputText id="name" @bind-Value="_user.Name" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label for="Password" class="form-label">Password</label>
+            <InputText id="Password" @bind-Value="_user.Password" Type="password" class="form-control" />
+        </div>    
+
+        <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+</EditForm>
+@code {
+    [SupplyParameterFromForm]
+    private User _user { get; set; } = new(string.Empty);
+    public bool NoUserAlert { get; set; }
+    public bool FillAllAlert { get; set; }
+    private Database _database = new Database();
+
+    private void HandleSubmit()
+    {
+
+        if (!string.IsNullOrWhiteSpace(_user.Name) &&
+           !string.IsNullOrWhiteSpace(_user.Password))
+        {
+            bool userExists = _database.CheckUserExistence(_user);
+            bool passCorr = _database.CheckUserPassword(_user);
+
+            if (userExists&&passCorr)
+            {
+                Globals.isLoggedIn = true;
+                NavigationManager.NavigateTo("/movies");
+            }
+            else
+            {
+                NoUserAlert = true;
+            }
+        }
+        else
+        {
+            FillAllAlert = true;
+        }
+    }
+}
+
+@if (NoUserAlert)
+{
+    <br />
+    <div class="alert alert-danger fade-in" role="alert">
+        User doesn't exist or the password is incorrect.
+    </div>
+}
+
+@if (FillAllAlert)
+{
+    <br />
+    <div class="alert alert-danger fade-in" role="alert">
+        Please fill in all the fields.
+    </div>
+}

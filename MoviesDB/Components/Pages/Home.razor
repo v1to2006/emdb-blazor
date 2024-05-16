@@ -1,0 +1,17 @@
+﻿@page "/"
+@inject NavigationManager NavigationManager
+
+<h3>Movie Database</h3>
+
+@code {
+    Task EnterProfile()
+    {
+        NavigationManager.NavigateTo("/profile");
+        return Task.CompletedTask;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await EnterProfile();
+    }
+}

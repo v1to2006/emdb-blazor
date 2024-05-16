@@ -1,0 +1,57 @@
+﻿@page "/profile"
+@using Models
+@inject NavigationManager NavigationManager 
+
+@if (Globals.isLoggedIn == false)
+{
+    <PageTitle>Login or register</PageTitle>
+    
+    <h1>Login or register</h1>
+    <EditForm Model="@_user" FormName="login" OnSubmit="HandleRegister">
+        <form>
+            <div>
+                <br />
+                <button type="submit" class="btn btn-primary" style="width: 120px;">Sign Up</button>
+            </div>
+        </form>
+    </EditForm>
+    <EditForm Model="@_user" FormName="register" OnSubmit="HandleLogin">
+        <form>
+            <div>
+                <br />
+                <button type="submit" class="btn btn-primary" style="width: 120px;">Sign In</button>
+            </div>
+        </form>
+    </EditForm>
+} 
+else
+{
+    <h1>You are logged in.</h1>
+    <hr/>
+    <EditForm Model="@_user" FormName="logout" OnSubmit="LogOut">
+        <form>
+            <div>
+                <button type="submit" class="btn btn-danger">Sign out</button>
+            </div>
+        </form>
+    </EditForm>
+}
+
+@code {
+    private User _user { get; set; } = new(string.Empty);
+
+    private void LogOut()
+    {
+        Globals.isLoggedIn = false;
+        NavigationManager.NavigateTo("/profile");
+    }
+
+    private void HandleRegister()
+    {
+        NavigationManager.NavigateTo("/register");
+    }
+    private void HandleLogin()
+    {
+        NavigationManager.NavigateTo("/login");
+    }
+}

@@ -1,0 +1,130 @@
+﻿@page "/register"
+@using Models
+@inject NavigationManager NavigationManager
+
+<PageTitle>Register</PageTitle>
+
+<h3>Register</h3>
+
+<EditForm Model="_user" OnSubmit="HandleSubmit" FormName="registerForm">
+    <div class="mb-3">
+        <label for="name" class="form-label">Username</label>
+        <InputText id="name" @bind-Value="_user.Name" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <InputText id="email" @bind-Value="_user.Email" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <InputText id="password" @bind-Value="_user.Password" Type="password" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label for="confirmPassword" class="form-label">Confirm Password</label>
+        <InputText id="confirmPassword" @bind-Value="_user.ConfirmPassword" Type="password" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Register</button>
+</EditForm>
+
+@code {
+    [SupplyParameterFromForm]
+    private User _user { get; set; } = new(string.Empty);
+    public bool UserAlreadyExists { get; set; }
+    public bool EmailIsTaken { get; set; }
+    public bool FillAllAlert { get; set; }
+    public bool PasswordMatchNot { get; set; }
+    public bool IncorrectName { get; set; }
+    public bool IncorrectEmail { get; set; }
+    public bool IncorrectPassword { get; set; }
+    private Database _database = new Database();
+    private Check _Check = new Check();
+
+    private void HandleSubmit()
+    {
+        if (!string.IsNullOrWhiteSpace(_user.Name) &&
+            !string.IsNullOrWhiteSpace(_user.Email) &&
+            !string.IsNullOrWhiteSpace(_user.Password)
+            )
+        {
+            bool userExists = _database.CheckUserExistence(_user);
+            bool passCorr = _database.CheckUserPassword(_user);
+
+            if (_Check.CheckPassword(_user) == true && _user.Password == _user.ConfirmPassword)
+            {
+                if (!userExists)
+                {
+                    _database.InsertUser(_user);
+                    NavigationManager.NavigateTo("/editmovie");
+                }
+                else if (userExists)
+                {
+                    UserAlreadyExists = true;
+                }
+            }
+            else if (!passCorr)
+            {
+                IncorrectPassword = true;
+            }
+            else
+            {
+                PasswordMatchNot = true;
+            }
+        }
+        else
+        {
+            FillAllAlert = true;
+        }
+    }
+}
+
+@if (UserAlreadyExists)
+{
+    <br />
+    <div class="alert alert-danger fade-in" role="alert">
+        User already exists or email is taken.
+    </div>
+}
+
+@if (PasswordMatchNot)
+{
+    <br />
+    <div class="alert alert-danger fade-in" role="alert">
+        Passwords do not match.
+    </div>
+}
+
+@if (FillAllAlert)
+{
+    <br />
+    <div class="alert alert-danger fade-in" role="alert">
+        Please fill in all the fields.
+    </div>
+}
+
+@if (IncorrectPassword)
+{
+    <br />
+    <div class="alert alert-danger fade-in" role="alert">
+        The password must have atleast 6 characters, 1 uppercase letter and 1 special character.
+    </div>
+}
+
+@if (IncorrectEmail)
+{
+    <br />
+    <div class="alert alert-danger fade-in" role="alert">
+        The email is incorrect.
+    </div>
+}
+
+@if (IncorrectName)
+{
+    <br />
+    <div class="alert alert-danger fade-in" role="alert">
+        The username.
+    </div>
+}
