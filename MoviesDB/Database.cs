@@ -137,7 +137,7 @@ namespace MoviesDB
             CloseConnection();
         }
 
-        public async Task EditMovieAsync(Movie movie)
+        public async Task UpdateMovieAsync(Movie movie)
         {
             string query = "UPDATE movies SET Name = @Name, Length = @Length, ReleaseYear = @ReleaseYear, Genres = @Genres, MainActors = @MainActors, Director = @Director, Rating = @Rating, Image = @Image WHERE idMovies = @idMovies";
 

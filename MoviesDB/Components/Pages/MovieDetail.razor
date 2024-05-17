@@ -1,5 +1,6 @@
 ﻿@page "/movie/{id:int}"
 @using Models
+@inject NavigationManager NavigationManager
 
 @if (movie is null)
 {
@@ -43,9 +44,13 @@ else
             <div>
                 <span><strong>Director: </strong>@movie.Ohjaaja</span>
             </div>
-            <br />
+            <br/>
             <div>
                 <span><strong>Stars: </strong>@movie.Päänäyttelijät</span>
+            </div>
+            <br/>
+            <div>
+                <a href="/editmovie/@movie.IdElokuvat" class="btn btn-hover" style="width: 160px;"><span>Edit Movie</span></a>
             </div>
         </div>
         
@@ -57,7 +62,7 @@ else
     [Parameter]
     public int Id { get; set; }
 
-    public Database Database;
+    public Database? Database;
 
     public Movie? movie;
 

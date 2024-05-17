@@ -1,0 +1,135 @@
+﻿@page "/editmovie/{id:int}"
+@using Models
+@inject NavigationManager NavigationManager
+
+<PageTitle>Add Movie - EMDb</PageTitle>
+
+@if (_movie is not null)
+{
+  <div class="container-xxl p-5">
+    <h3>Edit @_movie.Nimi</h3>
+    @if (Globals.isLoggedIn)
+    {
+      <EditForm Model="@_movie" OnSubmit="HandleSubmit" FormName="editMovieForm">
+        <div class="mb-3">
+          <label for="edit-nimi" class="form-label">Title *</label>
+          <InputText id="edit-nimi" @bind-Value="_movie.Nimi" @onchange="(e) => _movie.Nimi = e.Value.ToString()" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+          <label for="edit-ohjaaja" class="form-label">Director *</label>
+          <InputText id="edit-ohjaaja" @bind-Value="_movie.Ohjaaja" @onchange="(e) => _movie.Ohjaaja = e.Value.ToString()" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+          <label for="edit-julkaistu" class="form-label">Release Year *</label>
+          <InputNumber id="edit-julkaistu" @bind-Value="_movie.Julkaistu" @onchange="(e) => _movie.Julkaistu = Convert.ToInt32(e.Value)" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+          <label for="edit-pituus" class="form-label">Length *</label>
+          <InputNumber id="edit-pituus" @bind-Value="_movie.Pituus" @onchange="(e) => _movie.Pituus = Convert.ToInt32(e.Value)" class="form-control" />
+          <div>Movie Length in minutes</div>
+        </div>
+
+        <div class="mb-3">
+          <label for="edit-arvio" class="form-label">Rating *</label>
+          <InputNumber id="edit-arvio" @bind-Value="_movie.Arvio" @onchange="(e) => _movie.Arvio = Convert.ToDouble(e.Value)" class="form-control" />
+          <div>IMDb Rating (0.0-10)</div>
+        </div>
+
+        <div class="mb-3">
+          <label for="edit-genre" class="form-label">Genres *</label>
+          <InputText id="edit-genre" @bind-Value="_movie.Genre" @onchange="(e) => _movie.Genre = e.Value.ToString()" class="form-control" />
+          <div>Example: Action, Genre, Drama</div>
+        </div>
+
+        <div class="mb-3">
+          <label for="edit-päänäyttelijät" class="form-label">Stars *</label>
+          <InputText id="edit-päänäyttelijät" @bind-Value="_movie.Päänäyttelijät" @onchange="(e) => _movie.Päänäyttelijät = e.Value.ToString()" class="form-control" />
+          <div>Example: Ryan Gosling, Emma Stone, Tom Hanks</div>
+        </div>
+
+        <div class="mb-3">
+          <label for="edit-image" class="form-label">Image URL</label>
+          <InputText id="edit-image" @bind-Value="_movie.Image" @onchange="(e) => _movie.Image = e.Value.ToString()" class="form-control" />
+          <div>Example: https://m.media-amazon.com/images/M/MV5BYzhiNDkyNzktNTZmYS00ZTBkLTk2MDAtM2U0YjU1MzgxZjgzXkEyXkFqcGdeQXVyMTMxODk2OTU._V1_.jpg</div>
+          <div>We recommend to copy image from IMDb.com</div>
+        </div>
+
+        <button type="submit" class="btn btn-hover"><span>Submit</span></button>
+      </EditForm>
+    }
+    else
+    {
+      <hr />
+      <h2>Sign in to edit movies</h2>
+    }
+  </div>
+}
+
+@code {
+    [SupplyParameterFromForm]
+    private Movie _movie { get; set; }
+
+    [Parameter]
+    public int Id { get; set; }
+
+    public Database? Database;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Database = new Database();
+        _movie = await Database.GetMovieByIdAsync(Id);
+    }
+
+    private bool IncorrectInput { get; set; }
+    private bool IncorrectArvio { get; set; }
+    private Database _database = new Database();
+
+    private async Task HandleSubmit()
+    {
+        if (!string.IsNullOrEmpty(_movie.Nimi) &&
+            !string.IsNullOrEmpty(_movie.Ohjaaja) &&
+            _movie.Julkaistu >= 1888 &&
+            _movie.Pituus > 0 &&
+            !string.IsNullOrEmpty(_movie.Genre) &&
+            !string.IsNullOrEmpty(_movie.Päänäyttelijät))
+        {
+            if (0 <= _movie.Arvio && _movie.Arvio <= 10)
+            {
+                await _database.UpdateMovieAsync(_movie);
+
+                _movie = await _database.GetMovieByIdAsync(_movie.IdElokuvat);
+
+                Console.WriteLine(_movie.Nimi);
+
+                NavigationManager.NavigateTo($"/movie/{_movie.IdElokuvat}");
+            }
+            else
+            {
+                IncorrectArvio = true;
+            }
+        }
+        else
+        {
+            IncorrectInput = true;
+        }
+    }
+}
+
+@if (IncorrectInput)
+{
+    <br />
+    <div class="alert alert-danger fade-in" role="alert">
+        Fill in the fields correctly.
+    </div>
+}
+
+@if (IncorrectArvio)
+{
+    <br />
+    <div class="alert alert-danger fade-in" role="alert">
+        Please give a rating between 0 and 10.
+    </div>
+}
