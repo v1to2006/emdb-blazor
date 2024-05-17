@@ -1,40 +1,33 @@
 ﻿@using Models
 
-@if (movie is not null)
+@if (Movie is not null)
 {
-    <div class="movie-item">
-        @if (!string.IsNullOrEmpty(movie.Image))
-        {
-            <img src="@movie.Image" alt="">
-        }
-        else
-        {
-            <img src="https://lightwidget.com/wp-content/uploads/localhost-file-not-found.jpg" alt="">
-        }
+    <a href="/movie/@Movie.IdElokuvat" class="movie-item">
+        <img src="@Movie.Image" alt="">
         <div class="movie-item-content">
             <div class="movie-item-title">
-                @movie.Nimi
+                @Movie.Nimi
             </div>
             <div class="movie-infos">
                 <div class="movie-info">
                     <i class="bx bxs-star"></i>
-                    <span>@movie.Arvio</span>
+                    <span>@Movie.Arvio</span>
                 </div>
                 <div class="movie-info">
                     <i class="bx bxs-time"></i>
-                    <span>@movie.Pituus mins</span>
+                    <span>@Movie.Pituus mins</span>
                 </div>
                 <div class="movie-info">
-                    <span>@movie.Julkaistu</span>
+                    <span>@Movie.Julkaistu</span>
                 </div>
             </div>
         </div>
-    </div>
+    </a>
 }
 else
 {
-    <div class="movie-item">
-        <img src="https://lightwidget.com/wp-content/uploads/localhost-file-not-found.jpg" alt="">
+    <a href="#" class="movie-item">
+        <img src="./images/movies/theatre-dead.jpg" alt="">
         <div class="movie-item-content">
             <div class="movie-item-title">
             </div>
@@ -50,12 +43,15 @@ else
                 <div class="movie-info">
                     <span></span>
                 </div>
+                <div class="movie-info">
+                    <span></span>
+                </div>
             </div>
         </div>
-    </div>
+    </a>
 }
 
 @code {
     [Parameter]
-    public Movie? movie { get; set; }
+    public Movie? Movie { get; set; }
 }

@@ -2,23 +2,26 @@
 {
     public class MovieSummary
     {
-        private readonly List<Movie> _movies;
+        public List<Movie> Movies;
 
         public MovieSummary()
         {
-            _movies = InitialMovies();
+            Movies = new List<Movie>();
         }
 
-        public List<Movie> GetMovies()
+        public async Task<List<Movie>> GetMoviesAsync()
         {
-            return new List<Movie>(_movies);
+            if (Movies.Count == 0)
+            {
+                Movies.AddRange(await InitialMoviesAsync());
+            }
+            return new List<Movie>(Movies);
         }
 
-        private List<Movie> InitialMovies()
+        private async Task<List<Movie>> InitialMoviesAsync()
         {
             Database database = new Database();
-
-            return database.GetAllMovies();
+            return await database.GetAllMoviesAsync();
         }
     }
 }

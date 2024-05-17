@@ -1,56 +1,58 @@
 ﻿@page "/login"
 @using Models
 @inject NavigationManager NavigationManager
-@inject IJSRuntime JsRuntime
 
-<PageTitle>Login</PageTitle>
+<PageTitle>Sign In - EMDb</PageTitle>
+<div class="container-xxl p-5">
+    <h3>Sign In</h3>
+    <EditForm Model="@_user" FormName="loginuser" OnSubmit="HandleSubmit">
 
-<h3>Login</h3>
+        <form>
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <InputText id="name" @bind-Value="_user.Name" class="form-control" />
+            </div>
 
-<EditForm Model="@_user" FormName="loginuser" OnSubmit="HandleSubmit">
-    <form>
-        <div class="mb-3">
-            <label for="name" class="form-label">Name</label>
-            <InputText id="name" @bind-Value="_user.Name" class="form-control" />
-        </div>
+            <div class="mb-3">
+                <label for="Password" class="form-label">Password</label>
+                <InputText id="Password" @bind-Value="_user.Password" Type="password" class="form-control" />
+            </div>
 
-        <div class="mb-3">
-            <label for="Password" class="form-label">Password</label>
-            <InputText id="Password" @bind-Value="_user.Password" Type="password" class="form-control" />
-        </div>    
+            <button type="submit" class="btn btn-hover"><span>Sign In</span></button>
+        </form>
+    </EditForm>
+</div>
 
-        <button type="submit" class="btn btn-primary">Login</button>
-    </form>
-</EditForm>
 @code {
     [SupplyParameterFromForm]
-    private User _user { get; set; } = new(string.Empty);
+    private User _user { get; set; } = new User(string.Empty);
+
     public bool NoUserAlert { get; set; }
     public bool FillAllAlert { get; set; }
-    private Database _database = new Database();
+    private readonly Database _database = new Database();
 
-    private void HandleSubmit()
+    private async Task HandleSubmit()
     {
+        FillAllAlert = false;
+        NoUserAlert = false;
 
-        if (!string.IsNullOrWhiteSpace(_user.Name) &&
-           !string.IsNullOrWhiteSpace(_user.Password))
+        if (string.IsNullOrWhiteSpace(_user.Name) || string.IsNullOrWhiteSpace(_user.Password))
         {
-            bool userExists = _database.CheckUserExistence(_user);
-            bool passCorr = _database.CheckUserPassword(_user);
+            FillAllAlert = true;
+            return;
+        }
 
-            if (userExists&&passCorr)
-            {
-                Globals.isLoggedIn = true;
-                NavigationManager.NavigateTo("/movies");
-            }
-            else
-            {
-                NoUserAlert = true;
-            }
+        bool userExists = await _database.CheckUserExistenceAsync(_user);
+        bool passCorr = await _database.CheckUserPasswordAsync(_user);
+
+        if (userExists && passCorr)
+        {
+            Globals.isLoggedIn = true;
+            NavigationManager.NavigateTo("/");
         }
         else
         {
-            FillAllAlert = true;
+            NoUserAlert = true;
         }
     }
 }

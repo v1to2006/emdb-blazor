@@ -1,0 +1,69 @@
+﻿@page "/movie/{id:int}"
+@using Models
+
+@if (movie is null)
+{
+    <p><em>Loading the movie...</em></p>
+}
+else
+{
+    <PageTitle>@movie.Nimi (@movie.Julkaistu) - EMDb</PageTitle>
+    <!--Page Banner-->
+    <div class="hero-bg" style="@($"--bg-img: url({movie.Image})")">
+        <div class="hero-container">
+            <div class="container-xxl d-flex flex-column flex-md-row">
+                <!--title content goes here-->
+                <div class="flex-grow-1 d-flex align-items-center justify-content-center justify-content-md-end">
+                    <div class="title-container text-center text-md-end">
+                        <h1 class="text-light"><strong>@movie.Nimi</strong></h1>
+                        <span class="badge me-2 text-bg-light">@movie.Julkaistu</span>
+                        <span class="badge me-2 text-bg-dark">@movie.Pituus min</span>
+                        <span class="badge me-2 text-bg-warning">@movie.Arvio <i class="bi bi-star-fill"></i></span>
+                        <div class="movie-links">
+                            <div class="d-flex justify-content-center justify-content-md-end p-3">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="order-last order-md-first d-flex justify-content-center">
+                    <div class="poster-container">
+                        <img src="@movie.Image" alt="Movie Poster" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container-xxl">
+        <div class="overview d-flex flex-column">
+            <div>
+                <span><strong>Genres: </strong>@movie.Genre</span>
+            </div>
+            <br/>
+            <div>
+                <span><strong>Director: </strong>@movie.Ohjaaja</span>
+            </div>
+            <br />
+            <div>
+                <span><strong>Stars: </strong>@movie.Päänäyttelijät</span>
+            </div>
+        </div>
+        
+    </div>
+    
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    public Database Database;
+
+    public Movie? movie;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Database = new Database();
+        movie = await Database.GetMovieByIdAsync(Id);
+    }
+}

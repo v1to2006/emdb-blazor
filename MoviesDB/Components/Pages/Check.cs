@@ -12,11 +12,11 @@ namespace MoviesDB.Components
                _movie.Julkaistu >= 1888 && _movie.Pituus > 0 && _movie.Genre != string.Empty &&
                _movie.Päänäyttelijät != string.Empty)
             {
-                { fields = true; }
+                fields = true; 
             }
             else
             {
-                { fields = false; }
+                fields = false;
             }
             return fields;
         }

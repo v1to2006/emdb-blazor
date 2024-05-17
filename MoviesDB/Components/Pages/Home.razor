@@ -1,17 +1,87 @@
 ﻿@page "/"
+@using Microsoft.AspNetCore.Http.Extensions
+@using MoviesDB.Models
+@using MoviesDB.Components.UI
+@inject MovieSummary MovieSummary
 @inject NavigationManager NavigationManager
+@inject NavigationManager uriHelper;
 
-<h3>Movie Database</h3>
+<PageTitle>EMDb: Movies</PageTitle>
+
+<div class="hero-section">
+    <div class="hero-slide">
+        <div class="hero-slide-item">
+            <img src="./images/main_banner.jpg" alt="">
+            <div class="overlay"></div>
+            <div class="hero-slide-item-content">
+                <div class="item-content-wraper">
+                    <div class="item-content-title">
+                        Discover Your Favorite Movies
+                    </div>
+                    <div class="item-content-description">
+                        You can discover your favorite movies or add new movies
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (movies is not null)
+{
+    <div class="section">
+        <div class="container">
+            <div class="section-header">
+                movies
+            </div>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-6">
+                @if (MovieSummary != null)
+                {
+                    @foreach (Movie currentMovie in movies)
+                    {
+                        <div class="col mb-4">
+                            <MovieItem Movie="currentMovie" />
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <p>Loading...</p>
+}
 
 @code {
-    Task EnterProfile()
+    private List<Movie>? movies;
+
+    [SupplyParameterFromQuery]
+    public int Page { get; set; } = 1;
+
+    protected override async Task OnParametersSetAsync()
     {
-        NavigationManager.NavigateTo("/profile");
-        return Task.CompletedTask;
+        movies = await MovieSummary.GetMoviesAsync();
     }
 
-    protected override async Task OnInitializedAsync()
+    private async Task LoadData()
     {
-        await EnterProfile();
+        if (MovieSummary == null)
+        {
+            MovieSummary = new MovieSummary();
+            await MovieSummary.GetMoviesAsync();
+            StateHasChanged();
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var timer = new Timer(new TimerCallback(_ =>
+            {
+                uriHelper.NavigateTo(uriHelper.Uri, forceLoad: true);
+            }), null, 2000, 2000);
+        }
     }
 }

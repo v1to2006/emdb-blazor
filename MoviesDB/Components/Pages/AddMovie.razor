@@ -2,88 +2,90 @@
 @using Models
 @inject NavigationManager NavigationManager
 
-<PageTitle>Add Movie</PageTitle>
-
-<h3>Add Movie</h3>
-
-@if (Globals.isLoggedIn == true)
-{
-    <EditForm Model
-    ="@_movie" FormName
-    ="editMovie" OnSubmit
-    ="HandleSubmit">
-        <form>
+<PageTitle>Add Movie - EMDb</PageTitle>
+<div class="container-xxl p-5">
+    <h3>Add Movie</h3>
+    @if (Globals.isLoggedIn)
+    {
+        <EditForm Model="@_movie" OnSubmit="HandleSubmit" FormName="addMovieForm">
             <div class="mb-3">
-                <label for="nimi" class="form-label">Nimi</label>
+                <label for="nimi" class="form-label">Title *</label>
                 <InputText id="nimi" @bind-Value="_movie.Nimi" class="form-control" />
-                <div class="form-text">Movie title</div>
             </div>
 
             <div class="mb-3">
-                <label for="ohjaaja" class="form-label">Ohjaaja</label>
+                <label for="ohjaaja" class="form-label">Director *</label>
                 <InputText id="ohjaaja" @bind-Value="_movie.Ohjaaja" class="form-control" />
-                <div class="form-text">Movie director</div>
             </div>
 
             <div class="mb-3">
-                <label for="julkaistu" class="form-label">Julkaistu (1888 jälkeen)</label>
+                <label for="julkaistu" class="form-label">Release Year *</label>
                 <InputNumber id="julkaistu" @bind-Value="_movie.Julkaistu" class="form-control" />
-                <div class="form-text">Release year</div>
             </div>
 
             <div class="mb-3">
-                <label for="length" class="form-label">Pituus</label>
+                <label for="pituus" class="form-label">Length *</label>
                 <InputNumber id="pituus" @bind-Value="_movie.Pituus" class="form-control" />
-                <div class="form-text">Movie Lenght in minutes</div>
+                <div>Movie Length in minutes</div>
             </div>
 
             <div class="mb-3">
-                <label for="rating" class="form-label">Arvio</label>
+                <label for="arvio" class="form-label">Rating *</label>
                 <InputNumber id="arvio" @bind-Value="_movie.Arvio" class="form-control" />
-                <div class="form-text">Review IMDb</div>
+                <div>IMDb Rating (0.0-10)</div>
             </div>
 
             <div class="mb-3">
-                <label for="genre" class="form-label">Genre</label>
+                <label for="genre" class="form-label">Genres *</label>
                 <InputText id="genre" @bind-Value="_movie.Genre" class="form-control" />
-                <div class="form-text">Movie's genre</div>
-            </div>
-            <div class="mb-3">
-                <label for="päänäyttelijät" class="form-label">Päänäyttelijät</label>
-                <InputText id="päänäyttelijät" @bind-Value="_movie.Päänäyttelijät" class="form-control" />
-                <div class="form-text">Main actors</div>
-            </div>
-            <div class="mb-3">
-                <label for="image" class="form-label">Linkki kuvaan</label>
-                <InputText id="image" @bind-Value="_movie.Image" class="form-control" />
-                <div class="form-text">Enter image's link. *Not required</div>
+                <div>Example: Action, Genre, Drama</div>
             </div>
 
-            <button type="submit" class="btn btn-primary">Submit</button>
-        </form>
-    </EditForm>
-}
-else
-{
-    <hr />
-    <h2>Must be logged in to view movies!</h2>
-}
+            <div class="mb-3">
+                <label for="päänäyttelijät" class="form-label">Stars *</label>
+                <InputText id="päänäyttelijät" @bind-Value="_movie.Päänäyttelijät" class="form-control" />
+                <div>Example: Ryan Gosling, Emma Stone, Tom Hanks</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="image" class="form-label">Image URL</label>
+                <InputText id="image" @bind-Value="_movie.Image" class="form-control" />
+                <div>Example: https://m.media-amazon.com/images/M/MV5BYzhiNDkyNzktNTZmYS00ZTBkLTk2MDAtM2U0YjU1MzgxZjgzXkEyXkFqcGdeQXVyMTMxODk2OTU._V1_.jpg</div>
+                <div>We recommend to copy image from IMDb.com</div>
+            </div>
+
+            <button type="submit" class="btn btn-hover"><span>Submit</span></button>
+        </EditForm>
+    }
+    else
+    {
+        <hr />
+        <h2>Sign in to add movies</h2>
+    }
+</div>
 
 @code {
     [SupplyParameterFromForm]
-    private Movie _movie { get; set; } = new(string.Empty);
+    private Movie _movie { get; set; } = new Movie();
+
     private bool IncorrectInput { get; set; }
     private bool IncorrectArvio { get; set; }
     private Database _database = new Database();
 
-    private void HandleSubmit()
+    private async Task HandleSubmit()
     {
-        if (_movie.Nimi != string.Empty && _movie.Ohjaaja != string.Empty && _movie.Julkaistu >= 1888 && _movie.Pituus > 0 && _movie.Genre != string.Empty && _movie.Päänäyttelijät != string.Empty &&_database.CheckMovies(_movie) == false)
+        if (!string.IsNullOrEmpty(_movie.Nimi) &&
+            !string.IsNullOrEmpty(_movie.Ohjaaja) &&
+            _movie.Julkaistu >= 1888 &&
+            _movie.Pituus > 0 &&
+            !string.IsNullOrEmpty(_movie.Genre) &&
+            !string.IsNullOrEmpty(_movie.Päänäyttelijät) &&
+            !await _database.CheckMovieExistenceAsync(_movie))
         {
             if (0 <= _movie.Arvio && _movie.Arvio <= 10)
             {
-                _database.InsertMovie(_movie);
-                NavigationManager.NavigateTo("/movies");
+                await _database.InsertMovieAsync(_movie);
+                NavigationManager.NavigateTo("/");
             }
             else
             {
@@ -94,7 +96,6 @@ else
         {
             IncorrectInput = true;
         }
-        
     }
 }
 
@@ -104,13 +105,12 @@ else
     <div class="alert alert-danger fade-in" role="alert">
         Fill in the fields correctly.
     </div>
-
 }
+
 @if (IncorrectArvio)
 {
     <br />
     <div class="alert alert-danger fade-in" role="alert">
-        Please give rating between 0  - 10.
+        Please give a rating between 0 and 10.
     </div>
-
 }

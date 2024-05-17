@@ -1,7 +1,5 @@
 ﻿using MoviesDB.Models;
 using MySql.Data.MySqlClient;
-using Mysqlx.Crud;
-using System.Collections.Generic;
 using System.Data;
 
 namespace MoviesDB
@@ -29,13 +27,13 @@ namespace MoviesDB
             _connection = new MySqlConnection(connectionQuery);
         }
 
-        public List<Movie> GetAllMovies()
+        public async Task<List<Movie>> GetAllMoviesAsync()
         {
             List<Movie> movies = new List<Movie>();
 
-            string query = "SELECT * FROM movies;";
+            string query = "SELECT * FROM movies ORDER BY idMovies DESC;";
 
-            OpenConnection();
+            await OpenConnectionAsync();
             MySqlCommand mySqlCommand = new MySqlCommand(query, _connection);
 
             MySqlDataAdapter mySqlDataAdapter = new MySqlDataAdapter(mySqlCommand);
@@ -73,132 +71,160 @@ namespace MoviesDB
             return movies;
         }
 
+        public async Task<Movie> GetMovieByIdAsync(int id)
+        {
+            Movie movie = null;
 
-        public void InsertMovie(Movie movie)
+            string query = "SELECT * FROM movies WHERE idMovies = @id;";
+
+            await OpenConnectionAsync();
+            MySqlCommand mySqlCommand = new MySqlCommand(query, _connection);
+            mySqlCommand.Parameters.AddWithValue("@id", id);
+
+            try
+            {
+                MySqlDataReader reader = (MySqlDataReader)await mySqlCommand.ExecuteReaderAsync();
+
+                if (await reader.ReadAsync())
+                {
+                    movie = new Movie(
+                        Convert.ToString(reader["Name"]),
+                        Convert.ToInt32(reader["idMovies"]),
+                        Convert.ToString(reader["Director"]),
+                        Convert.ToInt32(reader["ReleaseYear"]),
+                        Convert.ToInt32(reader["Length"]),
+                        Convert.ToDouble(reader["Rating"]),
+                        Convert.ToString(reader["Genres"]),
+                        Convert.ToString(reader["MainActors"]),
+                        Convert.ToString(reader["Image"])
+                    );
+                }
+
+                reader.Close();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching movie by ID: {ex.Message}");
+            }
+            finally
+            {
+                CloseConnection();
+            }
+
+            return movie;
+        }
+
+        public async Task InsertMovieAsync(Movie movie)
         {
             double rounded = Math.Round(movie.Arvio, 1);
-            string Arvio = rounded.ToString().Replace(',','.');
+            string Arvio = rounded.ToString().Replace(',', '.');
 
-            string query = $"INSERT INTO movies (Name, Director, ReleaseYear, Length, Rating, Genres, MainActors, Image) VALUES (" +
-                $"\"{movie.Nimi}\"," +
-                $"\"{movie.Ohjaaja}\"," +
-                $"{movie.Julkaistu}," +
-                $"{movie.Pituus}," +
-                $"\"{Arvio}\"," +
-                $"\"{movie.Genre}\"," +
-                $"\"{movie.Päänäyttelijät}\"," +
-                $"\"{movie.Image}\"" +
-                $");";
+            string query = "INSERT INTO movies (Name, Director, ReleaseYear, Length, Rating, Genres, MainActors, Image) VALUES (@Name, @Director, @ReleaseYear, @Length, @Rating, @Genres, @MainActors, @Image)";
 
-            OpenConnection();
+            await OpenConnectionAsync();
 
             MySqlCommand mySqlCommand = new MySqlCommand(query, _connection);
-            mySqlCommand.ExecuteNonQuery();
+            mySqlCommand.Parameters.AddWithValue("@Name", movie.Nimi);
+            mySqlCommand.Parameters.AddWithValue("@Director", movie.Ohjaaja);
+            mySqlCommand.Parameters.AddWithValue("@ReleaseYear", movie.Julkaistu);
+            mySqlCommand.Parameters.AddWithValue("@Length", movie.Pituus);
+            mySqlCommand.Parameters.AddWithValue("@Rating", Arvio);
+            mySqlCommand.Parameters.AddWithValue("@Genres", movie.Genre);
+            mySqlCommand.Parameters.AddWithValue("@MainActors", movie.Päänäyttelijät);
+            mySqlCommand.Parameters.AddWithValue("@Image", movie.Image);
+
+            await mySqlCommand.ExecuteNonQueryAsync();
             CloseConnection();
         }
 
-        public void EditMovie(Movie movie)
+        public async Task EditMovieAsync(Movie movie)
         {
-            string query = $"UPDATE movies SET Name = '{movie.Nimi}', Length = {movie.Pituus}, ReleaseYear = {movie.Julkaistu}, Genres = '{movie.Genre}', MainActors = '{movie.Päänäyttelijät}', Director = '{movie.Ohjaaja}', Rating = {movie.Arvio}, Image = '{movie.Image}' WHERE idMovies = {movie.IdElokuvat}";
+            string query = "UPDATE movies SET Name = @Name, Length = @Length, ReleaseYear = @ReleaseYear, Genres = @Genres, MainActors = @MainActors, Director = @Director, Rating = @Rating, Image = @Image WHERE idMovies = @idMovies";
 
-            OpenConnection();
+            await OpenConnectionAsync();
 
             MySqlCommand mySqlCommand = new MySqlCommand(query, _connection);
-            mySqlCommand.ExecuteNonQuery();
+            mySqlCommand.Parameters.AddWithValue("@Name", movie.Nimi);
+            mySqlCommand.Parameters.AddWithValue("@Length", movie.Pituus);
+            mySqlCommand.Parameters.AddWithValue("@ReleaseYear", movie.Julkaistu);
+            mySqlCommand.Parameters.AddWithValue("@Genres", movie.Genre);
+            mySqlCommand.Parameters.AddWithValue("@MainActors", movie.Päänäyttelijät);
+            mySqlCommand.Parameters.AddWithValue("@Director", movie.Ohjaaja);
+            mySqlCommand.Parameters.AddWithValue("@Rating", movie.Arvio);
+            mySqlCommand.Parameters.AddWithValue("@Image", movie.Image);
+            mySqlCommand.Parameters.AddWithValue("@idMovies", movie.IdElokuvat);
+
+            await mySqlCommand.ExecuteNonQueryAsync();
             CloseConnection();
         }
 
-        public bool CheckMovies(Movie movie)
+        public async Task<bool> CheckMovieExistenceAsync(Movie movie)
         {
-            string query = "SELECT * FROM movies WHERE Name = @MovieName";
+            string query = "SELECT COUNT(*) FROM movies WHERE Name = @MovieName";
 
-            OpenConnection();
+            await OpenConnectionAsync();
 
             MySqlCommand mySqlCommand = new MySqlCommand(query, _connection);
             mySqlCommand.Parameters.AddWithValue("@MovieName", movie.Nimi);
 
-            MySqlDataReader mySqlDataReader = mySqlCommand.ExecuteReader();
+            long movieCount = (long)await mySqlCommand.ExecuteScalarAsync();
 
-            bool movieExists = mySqlDataReader.HasRows;
-
-            mySqlDataReader.Close();
             CloseConnection();
 
-            return movieExists;
-        }
-        public void InsertUser(User user)
-        {
-                string query = $"INSERT INTO usertable (username, email, password) VALUES (" +
-                $"\"{user.Name}\"," +
-                $"\"{user.Email}\"," +
-                $"\"{user.Password}\"" +
-                $");";
-
-                OpenConnection();
-
-                MySqlCommand mySqlCommand = new MySqlCommand(query, _connection);
-                mySqlCommand.ExecuteNonQuery();
-                CloseConnection();
+            return movieCount > 0;
         }
 
-        public bool CheckUserExistence(User user)
+        public async Task InsertUserAsync(User user)
         {
-            bool userExists;
-            long userWow;
-            using (MySqlCommand sqlCommand = new MySqlCommand("SELECT COUNT(*) from usertable where username like @username OR email like @email", _connection))
-            {
-                _connection.Open();
-                sqlCommand.Parameters.AddWithValue("@username", user.Name);
-                sqlCommand.Parameters.AddWithValue("@email", user.Email);
-                long userCount = (long)sqlCommand.ExecuteScalar();
-                userWow = userCount;
-                CloseConnection();
-            }
+            string query = "INSERT INTO usertable (username, email, password) VALUES (@Name, @Email, @Password)";
 
-            if (userWow == 0)
-            {
-                userExists = false;
-            }
-            else
-            {
-                userExists = true;
-            }
+            await OpenConnectionAsync();
 
-            return userExists;
+            MySqlCommand mySqlCommand = new MySqlCommand(query, _connection);
+            mySqlCommand.Parameters.AddWithValue("@Name", user.Name);
+            mySqlCommand.Parameters.AddWithValue("@Email", user.Email);
+            mySqlCommand.Parameters.AddWithValue("@Password", user.Password);
+
+            await mySqlCommand.ExecuteNonQueryAsync();
+            CloseConnection();
         }
 
-        public bool CheckUserPassword(User user)
+        public async Task<bool> CheckUserExistenceAsync(User user)
         {
-            string username = user.Name;
-            bool passCorr;
+            string query = "SELECT COUNT(*) FROM usertable WHERE username = @username OR email = @Email";
 
-            using (MySqlCommand sqlCommand = new MySqlCommand("SELECT usertable.password from usertable WHERE username='"+username+"'", _connection))
-            {
-                _connection.Open();
-                
-                string pass = (string)sqlCommand.ExecuteScalar();
-                
-                CloseConnection();
+            await OpenConnectionAsync();
 
-                if (pass == user.Password)
-                {
-                    passCorr = true;
-                }
+            MySqlCommand mySqlCommand = new MySqlCommand(query, _connection);
+            mySqlCommand.Parameters.AddWithValue("@username", user.Name);
+            mySqlCommand.Parameters.AddWithValue("@Email", user.Email);
 
-                else
-                {
-                    passCorr = false;
-                }
+            long userCount = (long)await mySqlCommand.ExecuteScalarAsync();
 
-            }
+            CloseConnection();
 
-            return passCorr;
-
+            return userCount > 0;
         }
 
-        private void OpenConnection()
+        public async Task<bool> CheckUserPasswordAsync(User user)
         {
-            _connection.Open();
+            string query = "SELECT password FROM usertable WHERE username = @username";
+
+            await OpenConnectionAsync();
+
+            MySqlCommand mySqlCommand = new MySqlCommand(query, _connection);
+            mySqlCommand.Parameters.AddWithValue("@username", user.Name);
+
+            string storedPassword = (string)await mySqlCommand.ExecuteScalarAsync();
+
+            CloseConnection();
+
+            return storedPassword == user.Password;
+        }
+
+        private async Task OpenConnectionAsync()
+        {
+            await _connection.OpenAsync();
         }
 
         private void CloseConnection()
