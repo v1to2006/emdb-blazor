@@ -3,34 +3,36 @@
 @inject NavigationManager NavigationManager
 
 <PageTitle>Sign Up - EMDb</PageTitle>
-<div class="container-xxl p-5">
-    <h3>Sign Up</h3>
+<div class="container-xxl p-5 d-flex justify-content-center">
+    <div class="row">
+        <h3>Sign Up</h3>
 
-    <EditForm Model="@_user" OnSubmit="HandleSubmit" FormName="registerForm">
-        <form>
-            <div class="mb-3">
-                <label for="name" class="form-label">Username</label>
-                <InputText id="name" @bind-Value="_user.Name" class="form-control" />
-            </div>
+        <EditForm Model="@_user" OnSubmit="HandleSubmit" FormName="registerForm">
+            <form>
+                <div class="mb-3">
+                    <label for="name" class="form-label">Username</label>
+                    <InputText id="name" @bind-Value="_user.Name" class="form-control" style="width: 300px;" />
+                </div>
 
-            <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <InputText id="email" @bind-Value="_user.Email" class="form-control" />
-            </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <InputText id="email" @bind-Value="_user.Email" class="form-control" style="width: 300px;" />
+                </div>
 
-            <div class="mb-3">
-                <label for="password" class="form-label">Password</label>
-                <InputText id="password" @bind-Value="_user.Password" Type="password" class="form-control" />
-            </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <InputText id="password" @bind-Value="_user.Password" Type="password" class="form-control" style="width: 300px;" />
+                </div>
 
-            <div class="mb-3">
-                <label for="confirmPassword" class="form-label">Confirm Password</label>
-                <InputText id="confirmPassword" @bind-Value="_user.ConfirmPassword" Type="password" class="form-control" />
-            </div>
+                <div class="mb-3">
+                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                    <InputText id="confirmPassword" @bind-Value="_user.ConfirmPassword" Type="password" class="form-control" style="width: 300px;" />
+                </div>
 
-            <button type="submit" class="btn btn-hover"><span>Sign Up</span></button>
-        </form>
-    </EditForm>
+                <button type="submit" class="btn btn-hover"><span>Sign Up</span></button>
+            </form>
+        </EditForm>
+    </div>
 </div>
 
 @if (UserAlreadyExists)
