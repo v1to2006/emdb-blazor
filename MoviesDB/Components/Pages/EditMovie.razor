@@ -106,8 +106,6 @@
 
     private async Task HandleSubmit()
     {
-        Console.WriteLine(Movie.Nimi);
-
         if (IsInputValid())
         {
             await _database.UpdateMovieAsync(Movie);
