@@ -18,8 +18,8 @@ namespace MoviesDB
         {
             _host = "mc.koudata.fi";
             _database = "moviedb";
-            _user = "app";
-            _password = "databaseApp!";
+            _user = "dbuser";
+            _password = "Nakkikastike123!";
             _port = 3306;
 
             string connectionQuery = $"Server={_host};Port={_port};Database={_database};Uid={_user};Pwd={_password};";
@@ -132,6 +132,19 @@ namespace MoviesDB
             mySqlCommand.Parameters.AddWithValue("@Genres", movie.Genre);
             mySqlCommand.Parameters.AddWithValue("@MainActors", movie.Päänäyttelijät);
             mySqlCommand.Parameters.AddWithValue("@Image", movie.Image);
+
+            await mySqlCommand.ExecuteNonQueryAsync();
+            CloseConnection();
+        }
+
+        public async Task DeleteMovieAsync(int id)
+        {
+            string query = "DELETE FROM moviedb.movies WHERE idMovies = @Id";
+
+            await OpenConnectionAsync();
+
+            MySqlCommand mySqlCommand = new MySqlCommand(query, _connection);
+            mySqlCommand.Parameters.AddWithValue("@Id", id);
 
             await mySqlCommand.ExecuteNonQueryAsync();
             CloseConnection();

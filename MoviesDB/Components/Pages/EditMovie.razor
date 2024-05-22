@@ -1,4 +1,5 @@
 ﻿@page "/editmovie/{id:int}"
+@rendermode InteractiveServer
 @using Models
 @inject NavigationManager NavigationManager
 
@@ -6,54 +7,54 @@
 
 <div class="container-xxl p-5 d-flex justify-content-center">
     <div class="row">
-        @if (_movie != null)
+        @if (Movie != null)
         {
-            <h3>Edit @_movie.Nimi</h3>
+            <h3>Edit @Movie.Nimi</h3>
             @if (Globals.isLoggedIn)
             {
-                <EditForm Model="_movie" OnValidSubmit="HandleSubmit" FormName="editMovieForm">
+                <EditForm Model="Movie" OnSubmit="HandleSubmit" FormName="editMovieForm">
                     <div class="mb-3">
                         <label for="edit-nimi" class="form-label">Title *</label>
-                        <InputText id="edit-nimi" @bind-Value="_movie.Nimi" class="form-control" style="width: 400px;" />
+                        <InputText id="edit-nimi" @bind-Value="Movie.Nimi" class="form-control" style="width: 400px;" />
                     </div>
 
                     <div class="mb-3">
                         <label for="edit-ohjaaja" class="form-label">Director *</label>
-                        <InputText id="edit-ohjaaja" @bind-Value="_movie.Ohjaaja" class="form-control" style="width: 400px;" />
+                        <InputText id="edit-ohjaaja" @bind-Value="Movie.Ohjaaja" class="form-control" style="width: 400px;" />
                     </div>
 
                     <div class="mb-3">
                         <label for="edit-julkaistu" class="form-label">Release Year *</label>
-                        <InputNumber id="edit-julkaistu" @bind-Value="_movie.Julkaistu" class="form-control" style="width: 400px;" />
+                        <InputNumber id="edit-julkaistu" @bind-Value="Movie.Julkaistu" class="form-control" style="width: 400px;" />
                     </div>
 
                     <div class="mb-3">
                         <label for="edit-pituus" class="form-label">Length *</label>
-                        <InputNumber id="edit-pituus" @bind-Value="_movie.Pituus" class="form-control" style="width: 400px;" />
+                        <InputNumber id="edit-pituus" @bind-Value="Movie.Pituus" class="form-control" style="width: 400px;" />
                         <div>Movie Length in minutes</div>
                     </div>
 
                     <div class="mb-3">
                         <label for="edit-arvio" class="form-label">Rating *</label>
-                        <InputNumber id="edit-arvio" @bind-Value="_movie.Arvio" class="form-control" style="width: 400px;" />
+                        <InputNumber id="edit-arvio" @bind-Value="Movie.Arvio" class="form-control" style="width: 400px;" />
                         <div>IMDb Rating (0.0-10)</div>
                     </div>
 
                     <div class="mb-3">
                         <label for="edit-genre" class="form-label">Genres *</label>
-                        <InputText id="edit-genre" @bind-Value="_movie.Genre" class="form-control" style="width: 400px;" />
+                        <InputText id="edit-genre" @bind-Value="Movie.Genre" class="form-control" style="width: 400px;" />
                         <div>Example: Action, Genre, Drama</div>
                     </div>
 
                     <div class="mb-3">
                         <label for="edit-päänäyttelijät" class="form-label">Stars *</label>
-                        <InputText id="edit-päänäyttelijät" @bind-Value="_movie.Päänäyttelijät" class="form-control" style="width: 400px;" />
+                        <InputText id="edit-päänäyttelijät" @bind-Value="Movie.Päänäyttelijät" class="form-control" style="width: 400px;" />
                         <div>Example: Ryan Gosling, Emma Stone, Tom Hanks</div>
                     </div>
 
                     <div class="mb-3">
                         <label for="edit-image" class="form-label">Image URL</label>
-                        <InputText id="edit-image" @bind-Value="_movie.Image" class="form-control" style="width: 400px;" />
+                        <InputText id="edit-image" @bind-Value="Movie.Image" class="form-control" style="width: 400px;" />
                         <div>Example: https://m.media-amazon.com/images/M/MV5BYzhiNDkyNzktNTZmYS00ZTBkLTk2MDAtM2U0YjU1MzgxZjgzXkEyXkFqcGdeQXVyMTMxODk2OTU._V1_.jpg</div>
                         <div>We recommend to copy image from IMDb.com</div>
                     </div>
@@ -88,7 +89,7 @@
 </div>
 
 @code {
-    private Movie _movie;
+    public Movie Movie { get; set; } = new Movie();
 
     [Parameter]
     public int Id { get; set; }
@@ -100,28 +101,30 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        _movie = await _database.GetMovieByIdAsync(Id);
+        Movie = await _database.GetMovieByIdAsync(Id);
     }
 
     private async Task HandleSubmit()
     {
+        Console.WriteLine(Movie.Nimi);
+
         if (IsInputValid())
         {
-            await _database.UpdateMovieAsync(_movie);
-            NavigationManager.NavigateTo($"/movie/{_movie.IdElokuvat}");
+            await _database.UpdateMovieAsync(Movie);
+            NavigationManager.NavigateTo($"/movie/{Movie.IdElokuvat}");
         }
     }
 
     private bool IsInputValid()
     {
-        IncorrectInput = string.IsNullOrEmpty(_movie.Nimi) ||
-                         string.IsNullOrEmpty(_movie.Ohjaaja) ||
-                         _movie.Julkaistu < 1888 ||
-                         _movie.Pituus <= 0 ||
-                         string.IsNullOrEmpty(_movie.Genre) ||
-                         string.IsNullOrEmpty(_movie.Päänäyttelijät);
+        IncorrectInput = string.IsNullOrEmpty(Movie.Nimi) ||
+                         string.IsNullOrEmpty(Movie.Ohjaaja) ||
+                         Movie.Julkaistu < 1888 ||
+                         Movie.Pituus <= 0 ||
+                         string.IsNullOrEmpty(Movie.Genre) ||
+                         string.IsNullOrEmpty(Movie.Päänäyttelijät);
 
-        IncorrectArvio = _movie.Arvio < 0 || _movie.Arvio > 10;
+        IncorrectArvio = Movie.Arvio < 0 || Movie.Arvio > 10;
 
         return !IncorrectInput && !IncorrectArvio;
     }

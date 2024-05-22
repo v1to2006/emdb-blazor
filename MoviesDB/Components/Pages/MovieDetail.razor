@@ -1,6 +1,8 @@
 ﻿@page "/movie/{id:int}"
+@rendermode InteractiveServer
 @using Models
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 @if (movie is null)
 {
@@ -50,7 +52,8 @@ else
             </div>
             <br/>
             <div>
-                <a href="/editmovie/@movie.IdElokuvat" class="btn btn-hover" style="width: 160px;"><span>Edit Movie</span></a>
+                <a href="/editmovie/@movie.IdElokuvat" class="btn btn-hover" style="width: 160px;"><span>Edit</span></a>
+                <button @onclick="DeleteMovie" class="btn btn-hover" style="width: 160px;"><span>Delete</span></button>
             </div>
         </div>
         
@@ -65,6 +68,25 @@ else
     public Database? Database;
 
     public Movie? movie;
+
+    public async void DeleteMovie()
+    {
+        if (Globals.isLoggedIn == false)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "You must be signed in to delete movies.");
+
+            return;
+        }
+
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Do you really want to delete {movie.Nimi}");
+
+        if (confirmed)
+        {
+            await Database.DeleteMovieAsync(movie.IdElokuvat);
+
+            NavigationManager.NavigateTo("/");
+        }
+    }
 
     protected override async Task OnParametersSetAsync()
     {
